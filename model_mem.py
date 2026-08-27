@@ -12,7 +12,7 @@ JUNIOR_API_KEY = "SEIG_HEIL"
 
 config = {
     "llm" : {
-        "provider": "testing_linode",
+        "provider": "openai",
         "config":{
             "model": JUNIOR_MODEL_ID,
             "base_url": JUNIOR_BASE_URL,
@@ -22,16 +22,15 @@ config = {
 
     #generating embedder vectors
     "embedder": {
-        "provider": "testing_linode",
-        "config":{
-            "model": JUNIOR_MODEL_ID,
+        "provider": "huggingface",
+        "config": {
+            "model": "multi-qa-MiniLM-L6-cos-v1" 
         }
     },
     #storing vectors
     "vector_store": {
         "provider": "qdrant",
         "config":{
-            "model": JUNIOR_MODEL_ID,
             "host": "localhost", "port": 6333
         }
     }
@@ -41,23 +40,21 @@ config = {
 junior_client = OpenAI(
     api_key=JUNIOR_API_KEY,
     base_url=JUNIOR_BASE_URL,
-    model=JUNIOR_MODEL_ID
 )
 
 m = Memory.from_config(config)
 
-def chat_with_mem(msg: str,user_id: str = "user_1") -> str:
-    relevant_mem = m.search(msg, user_id=user_id,limit=3)
-
+def chat_with_mem(msg: str, user_id: str = "user_1") -> str:
+    relevant_mem = m.search(msg, user_id=user_id, limit=3)
     if relevant_mem["results"]:
         memories_str = "\n".join(
             f"- {entry['memory']}" for entry in relevant_mem["results"]
         )
         print(f"Relevant memories found:\n{memories_str}")
     else:
+        memories_str = "No previous memories."
         print("No relevant memories found.")
 
-    # Generate a response using the junior model
     system_prompt = "You are Junior, a helpful assistant. Use the following memories to inform your response:\n"
     message = [
         {"role": "system", "content": system_prompt + memories_str},
@@ -71,10 +68,10 @@ def chat_with_mem(msg: str,user_id: str = "user_1") -> str:
     )
     junior_response = response.choices[0].message.content
 
-    message.append({"role": "junior", "content": junior_response})
+    message.append({"role": "assistant", "content": junior_response})
 
-    # Store the conversation in memory
-    m.add(message, user_id=user_id, meta_data={"session_id": "session_1", "category": "chat_with_mem"})
+    m.add(message, user_id=user_id, metadata={"session_id": "session_1", "category": "chat_with_mem"})
+    
     return junior_response
 
 def main():
