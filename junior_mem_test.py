@@ -26,10 +26,13 @@ message = [
 
 # store the messages in memory
 
-result = m.add(message,user_id="user_1",meta_data={"session_id": "session_1",
-                                                   "category": "movie_recommendation"})
+result = m.add(
+    message,
+    user_id="user_1",
+    meta_data={"session_id": "session_1", "category": "movie_recommendation"},
+)
 
-#get all the memory for the user
+# get all the memory for the user
 all_memories = m.get_all(user_id="user_1")
 
 # search for the related memories
