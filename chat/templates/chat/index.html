@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Junior — Local AI Agent</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  >
+
+  <style>
+    :root {
+      --bg: #07100c;
+      --bg-soft: #0a1510;
+      --panel: #0c1812;
+      --panel-2: #101d16;
+
+      --line: rgba(184, 221, 196, 0.12);
+      --line-strong: rgba(184, 221, 196, 0.22);
+
+      --text: #e8eee9;
+      --muted: #809187;
+
+      --accent: #b8e7c7;
+      --accent-bright: #d6f8df;
+      --accent-dim: #729982;
+
+      --danger: #e18e8e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    .mono {
+      font-family:
+        "SFMono-Regular",
+        "SF Mono",
+        "Cascadia Code",
+        "Roboto Mono",
+        Consolas,
+        monospace;
+    }
+
+    /* subtle Hermes-style grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+
+      background-image:
+        linear-gradient(
+          rgba(184, 231, 199, 0.018) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(184, 231, 199, 0.018) 1px,
+          transparent 1px
+        );
+
+      background-size: 32px 32px;
+
+      mask-image:
+        linear-gradient(
+          to bottom,
+          black,
+          rgba(0, 0, 0, 0.6) 60%,
+          transparent
+        );
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          rgba(113, 175, 135, 0.07),
+          transparent 40%
+        );
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+    }
+
+    .technical-border {
+      border-color: var(--line);
+    }
+
+    .technical-border-strong {
+      border-color: var(--line-strong);
+    }
+
+    .panel {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(14, 28, 20, 0.96),
+          rgba(8, 18, 13, 0.98)
+        );
+    }
+
+    /* custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(184, 231, 199, 0.13);
+      border-radius: 100px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(184, 231, 199, 0.25);
+    }
+
+    .status-dot {
+      box-shadow:
+        0 0 0 4px rgba(184, 231, 199, 0.05),
+        0 0 16px rgba(184, 231, 199, 0.22);
+    }
+
+    .agent-mark {
+      position: relative;
+    }
+
+    .agent-mark::after {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border: 1px solid rgba(184, 231, 199, 0.08);
+    }
+
+    .message-enter {
+      animation: messageIn 180ms ease-out;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .thinking-dot {
+      animation: thinking 1.2s infinite ease-in-out;
+    }
+
+    .thinking-dot:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .thinking-dot:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes thinking {
+      0%,
+      80%,
+      100% {
+        opacity: 0.25;
+      }
+
+      40% {
+        opacity: 1;
+      }
+    }
+
+    #message-input::placeholder {
+      color: #536259;
+    }
+
+    #message-input:focus {
+      border-color: rgba(184, 231, 199, 0.32);
+      box-shadow:
+        0 0 0 1px rgba(184, 231, 199, 0.04),
+        0 0 25px rgba(92, 153, 113, 0.035);
+    }
+  </style>
+</head>
+
+<body class="overflow-hidden">
+
+<div class="shell h-screen flex flex-col">
+
+  <!-- ====================================================== -->
+  <!-- HEADER -->
+  <!-- ====================================================== -->
+
+  <header
+    class="
+      h-[62px]
+      shrink-0
+      border-b technical-border
+      bg-[#07100c]/90
+      backdrop-blur-xl
+      flex
+      items-center
+      justify-between
+      px-5 md:px-8
+    "
+  >
+
+    <!-- Brand -->
+    <div class="flex items-center gap-4">
+
+      <div
+        class="
+          agent-mark
+          w-7 h-7
+          border technical-border-strong
+          flex items-center justify-center
+          mono
+          text-[11px]
+          text-[#ccebd6]
+        "
+      >
+        J
+      </div>
+
+      <div class="flex items-center gap-3">
+
+        <span
+          class="
+            text-[14px]
+            tracking-[0.19em]
+            font-medium
+            text-[#e7eee9]
+          "
+        >
+          JUNIOR
+        </span>
+
+        <span
+          class="
+            hidden sm:inline
+            mono
+            text-[9px]
+            tracking-[0.16em]
+            text-[#617269]
+            border-l technical-border
+            pl-3
+          "
+        >
+          LOCAL AGENT
+        </span>
+
+      </div>
+    </div>
+
+
+    <!-- Header Right -->
+    <div class="flex items-center gap-5">
+
+      <!-- status -->
+      <div
+        class="
+          hidden md:flex
+          items-center gap-2
+          mono
+          text-[9px]
+          tracking-[0.14em]
+          uppercase
+          text-[#718379]
+        "
+      >
+
+        <span
+          class="
+            status-dot
+            w-[5px]
+            h-[5px]
+            rounded-full
+            bg-[#acd9ba]
+          "
+        ></span>
+
+        inference online
+
+      </div>
+
+
+      <!-- Qdrant -->
+      <a
+        href="http://localhost:6333/dashboard#/collections"
+        target="_blank"
+        rel="noopener noreferrer"
+
+        class="
+          group
+          mono
+          text-[10px]
+          tracking-[0.1em]
+          uppercase
+          border technical-border-strong
+          text-[#97aa9e]
+          hover:text-[#d3e6d9]
+          hover:border-[#6f8f7a]
+          px-3.5
+          h-8
+          flex
+          items-center
+          gap-2
+          transition-all
+        "
+      >
+
+        <i
+          class="
+            fa-solid
+            fa-database
+            text-[9px]
+            text-[#7fa58c]
+          "
+        ></i>
+
+        <span class="hidden sm:inline">
+          Qdrant
+        </span>
+
+        <i
+          class="
+            fa-solid
+            fa-arrow-up-right-from-square
+            text-[8px]
+            opacity-50
+            group-hover:opacity-100
+          "
+        ></i>
+
+      </a>
+
+    </div>
+
+  </header>
+
+
+  <!-- ====================================================== -->
+  <!-- WORKSPACE -->
+  <!-- ====================================================== -->
+
+  <main class="flex-1 min-h-0 flex justify-center">
+
+    <section
+      class="
+        w-full
+        max-w-[1000px]
+        h-full
+        border-x technical-border
+        flex
+        flex-col
+        bg-[#08110d]/55
+      "
+    >
+
+
+      <!-- ================================================== -->
+      <!-- CHAT TOP INFO -->
+      <!-- ================================================== -->
+
+      <div
+        class="
+          h-11
+          shrink-0
+          border-b technical-border
+          flex
+          items-center
+          justify-between
+          px-5 md:px-7
+          mono
+        "
+      >
+
+        <div
+          class="
+            text-[9px]
+            tracking-[0.14em]
+            text-[#64736a]
+            uppercase
+          "
+        >
+          conversation / user_1
+        </div>
+
+
+        <div
+          class="
+            text-[9px]
+            tracking-[0.12em]
+            text-[#4f6056]
+            uppercase
+          "
+        >
+          memory enabled
+        </div>
+
+      </div>
+
+
+      <!-- ================================================== -->
+      <!-- CHAT STREAM -->
+      <!-- ================================================== -->
+
+      <div
+        id="chat-box"
+        class="
+          flex-1
+          min-h-0
+          overflow-y-auto
+          px-5
+          md:px-10
+          py-8
+        "
+      >
+
+        <div class="max-w-[820px] mx-auto space-y-10">
+
+
+          <!-- Initial Assistant -->
+          <article class="message-enter">
+
+            <div class="flex gap-5">
+
+              <!-- avatar -->
+              <div class="shrink-0 pt-[2px]">
+
+                <div
+                  class="
+                    w-7
+                    h-7
+                    border technical-border-strong
+                    flex
+                    items-center
+                    justify-center
+                    mono
+                    text-[10px]
+                    text-[#bfe0ca]
+                    bg-[#0d1912]
+                  "
+                >
+                  J
+                </div>
+
+              </div>
+
+
+              <!-- content -->
+              <div class="flex-1 min-w-0">
+
+                <div
+                  class="
+                    flex
+                    items-center
+                    gap-3
+                    mb-3
+                    mono
+                  "
+                >
+
+                  <span
+                    class="
+                      text-[10px]
+                      tracking-[0.14em]
+                      uppercase
+                      text-[#aac1b1]
+                    "
+                  >
+                    Junior
+                  </span>
+
+                  <span
+                    class="
+                      text-[9px]
+                      text-[#46564d]
+                    "
+                  >
+                    agent
+                  </span>
+
+                </div>
+
+
+                <div
+                  class="
+                    text-[15px]
+                    md:text-[16px]
+                    leading-7
+                    text-[#cbd5ce]
+                  "
+                >
+                  Hello. I’m Junior.
+
+                  <span class="text-[#75877c]">
+                    I can recall relevant context from long-term memory
+                    while we talk.
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================== -->
+      <!-- INPUT AREA -->
+      <!-- ================================================== -->
+
+      <div
+        class="
+          shrink-0
+          border-t technical-border
+          bg-[#07100c]/92
+          px-4
+          md:px-7
+          pt-4
+          pb-5
+        "
+      >
+
+        <div class="max-w-[820px] mx-auto">
+
+          <form
+            id="chat-form"
+            class="relative"
+          >
+
+            <div
+              class="
+                border
+                technical-border-strong
+                bg-[#0a1510]
+                transition-all
+                flex
+                items-center
+              "
+            >
+
+              <!-- terminal indicator -->
+              <div
+                class="
+                  pl-4
+                  mono
+                  text-[13px]
+                  text-[#7ea18a]
+                  select-none
+                "
+              >
+                &gt;
+              </div>
+
+
+              <input
+                id="message-input"
+                type="text"
+                autocomplete="off"
+                placeholder="Message Junior..."
+                class="
+                  flex-1
+                  h-[54px]
+                  bg-transparent
+                  outline-none
+                  border-0
+                  px-3
+                  text-[14px]
+                  text-[#d6ded8]
+                "
+              >
+
+
+              <button
+                id="send-btn"
+                type="submit"
+                aria-label="Send"
+
+                class="
+                  group
+                  w-[52px]
+                  h-[52px]
+                  flex
+                  items-center
+                  justify-center
+                  text-[#7f9687]
+                  hover:text-[#d4e8da]
+                  transition-colors
+                "
+              >
+
+                <i
+                  class="
+                    fa-solid
+                    fa-arrow-up
+                    text-[13px]
+                    transition-transform
+                    group-hover:-translate-y-[2px]
+                  "
+                ></i>
+
+              </button>
+
+            </div>
+
+          </form>
+
+
+          <!-- footer info -->
+          <div
+            class="
+              flex
+              items-center
+              justify-between
+              mt-3
+              mono
+              text-[8px]
+              tracking-[0.1em]
+              uppercase
+              text-[#405047]
+            "
+          >
+
+            <span>
+              qwen3.8 / mlx
+            </span>
+
+            <span>
+              mem0 · qdrant
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+
+<!-- ======================================================== -->
+<!-- CHAT LOGIC -->
+<!-- ======================================================== -->
+
+<script>
+
+  const form =
+    document.getElementById("chat-form");
+
+  const input =
+    document.getElementById("message-input");
+
+  const chatBox =
+    document.getElementById("chat-box");
+
+  const sendBtn =
+    document.getElementById("send-btn");
+
+
+  function getMessagesContainer() {
+    return chatBox.querySelector(
+      ".max-w-\\[820px\\]"
+    );
+  }
+
+
+  function scrollToBottom() {
+
+    requestAnimationFrame(() => {
+
+      chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
+      });
+
+    });
+
+  }
+
+
+  /* -------------------------------------------------------- */
+  /* User Message                                             */
+  /* -------------------------------------------------------- */
+
+  function renderUserMessage(message) {
+
+    const container =
+      getMessagesContainer();
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+        <article class="message-enter">
+
+          <div class="flex gap-5 justify-end">
+
+            <div class="max-w-[720px] text-right">
+
+              <div
+                class="
+                  mb-3
+                  mono
+                  text-[10px]
+                  tracking-[0.14em]
+                  uppercase
+                  text-[#65776c]
+                "
+              >
+                You
+              </div>
+
+              <div
+                class="
+                  inline-block
+                  text-left
+                  border-l
+                  border-[#577263]
+                  pl-5
+                  text-[15px]
+                  md:text-[16px]
+                  leading-7
+                  text-[#d8e1db]
+                "
+              >
+                ${escapeHtml(message)}
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+      `
+    );
+
+  }
+
+
+  /* -------------------------------------------------------- */
+  /* Loading Message                                          */
+  /* -------------------------------------------------------- */
+
+  function renderLoading() {
+
+    const id =
+      "loading-" + Date.now();
+
+    const container =
+      getMessagesContainer();
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+        <article
+          id="${id}"
+          class="message-enter"
+        >
+
+          <div class="flex gap-5">
+
+            <div class="shrink-0">
+
+              <div
+                class="
+                  w-7
+                  h-7
+                  border technical-border-strong
+                  flex
+                  items-center
+                  justify-center
+                  mono
+                  text-[10px]
+                  text-[#bfe0ca]
+                  bg-[#0d1912]
+                "
+              >
+                J
+              </div>
+
+            </div>
+
+
+            <div>
+
+              <div
+                class="
+                  mono
+                  text-[9px]
+                  uppercase
+                  tracking-[0.13em]
+                  text-[#56685d]
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
+
+                <span>
+                  recalling memory / inference
+                </span>
+
+
+                <span class="flex gap-1">
+
+                  <span
+                    class="
+                      thinking-dot
+                      block
+                      w-[3px]
+                      h-[3px]
+                      bg-[#8eaa98]
+                    "
+                  ></span>
+
+                  <span
+                    class="
+                      thinking-dot
+                      block
+                      w-[3px]
+                      h-[3px]
+                      bg-[#8eaa98]
+                    "
+                  ></span>
+
+                  <span
+                    class="
+                      thinking-dot
+                      block
+                      w-[3px]
+                      h-[3px]
+                      bg-[#8eaa98]
+                    "
+                  ></span>
+
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+      `
+    );
+
+    return id;
+
+  }
+
+
+  /* -------------------------------------------------------- */
+  /* Assistant Message                                        */
+  /* -------------------------------------------------------- */
+
+  function renderAssistantMessage(
+    response,
+    memories = []
+  ) {
+
+    const container =
+      getMessagesContainer();
+
+
+    let memoryBlock = "";
+
+
+    if (
+      Array.isArray(memories) &&
+      memories.length > 0
+    ) {
+
+      memoryBlock = `
+        <details
+          class="
+            mt-5
+            border
+            technical-border
+            bg-[#08120d]
+          "
+        >
+
+          <summary
+            class="
+              cursor-pointer
+              select-none
+              px-4
+              py-3
+              mono
+              text-[9px]
+              uppercase
+              tracking-[0.13em]
+              text-[#688073]
+              hover:text-[#9cb5a5]
+            "
+          >
+
+            recalled context
+            <span class="text-[#43534a]">
+              [${memories.length}]
+            </span>
+
+          </summary>
+
+
+          <div
+            class="
+              border-t
+              technical-border
+              px-4
+              py-4
+              space-y-2
+            "
+          >
+
+            ${memories.map(memory => `
+
+              <div
+                class="
+                  flex
+                  gap-3
+                  mono
+                  text-[10px]
+                  leading-5
+                  text-[#70857a]
+                "
+              >
+
+                <span class="text-[#51655a]">
+                  ├─
+                </span>
+
+                <span>
+                  ${escapeHtml(memory)}
+                </span>
+
+              </div>
+
+            `).join("")}
+
+          </div>
+
+        </details>
+      `;
+
+    }
+
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+        <article class="message-enter">
+
+          <div class="flex gap-5">
+
+            <div class="shrink-0 pt-[2px]">
+
+              <div
+                class="
+                  w-7
+                  h-7
+                  border technical-border-strong
+                  flex
+                  items-center
+                  justify-center
+                  mono
+                  text-[10px]
+                  text-[#bfe0ca]
+                  bg-[#0d1912]
+                "
+              >
+                J
+              </div>
+
+            </div>
+
+
+            <div class="flex-1 min-w-0">
+
+              <div
+                class="
+                  flex
+                  items-center
+                  gap-3
+                  mb-3
+                  mono
+                "
+              >
+
+                <span
+                  class="
+                    text-[10px]
+                    tracking-[0.14em]
+                    uppercase
+                    text-[#aac1b1]
+                  "
+                >
+                  Junior
+                </span>
+
+                <span
+                  class="
+                    text-[9px]
+                    text-[#46564d]
+                  "
+                >
+                  agent
+                </span>
+
+              </div>
+
+
+              <div
+                class="
+                  whitespace-pre-wrap
+                  text-[15px]
+                  md:text-[16px]
+                  leading-7
+                  text-[#cbd5ce]
+                "
+              >${escapeHtml(response)}</div>
+
+
+              ${memoryBlock}
+
+            </div>
+
+          </div>
+
+        </article>
+      `
+    );
+
+  }
+
+
+  /* -------------------------------------------------------- */
+  /* Error                                                    */
+  /* -------------------------------------------------------- */
+
+  function renderError(message) {
+
+    const container =
+      getMessagesContainer();
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+        <div
+          class="
+            message-enter
+            mono
+            text-[10px]
+            tracking-[0.08em]
+            text-[#c98080]
+            border-l
+            border-[#764747]
+            pl-4
+          "
+        >
+          ERROR / ${escapeHtml(message)}
+        </div>
+      `
+    );
+
+  }
+
+
+  /* -------------------------------------------------------- */
+  /* Submit                                                   */
+  /* -------------------------------------------------------- */
+
+  form.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      const message =
+        input.value.trim();
+
+
+      if (!message) {
+        return;
+      }
+
+
+      renderUserMessage(message);
+
+
+      input.value = "";
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+
+      const loadingId =
+        renderLoading();
+
+
+      scrollToBottom();
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/chat/",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                message,
+                user_id: "user_1"
+              })
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        document
+          .getElementById(loadingId)
+          ?.remove();
+
+
+        if (
+          !response.ok ||
+          data.error
+        ) {
+
+          renderError(
+            data.error ||
+            `HTTP ${response.status}`
+          );
+
+          return;
+        }
+
+
+        renderAssistantMessage(
+          data.response,
+          data.recalled_memories
+        );
+
+      }
+
+      catch (error) {
+
+        document
+          .getElementById(loadingId)
+          ?.remove();
+
+
+        renderError(
+          "Unable to reach Junior."
+        );
+
+        console.error(error);
+
+      }
+
+      finally {
+
+        input.disabled = false;
+        sendBtn.disabled = false;
+
+        input.focus();
+
+        scrollToBottom();
+
+      }
+
+    }
+  );
+
+
+  /* -------------------------------------------------------- */
+  /* HTML escaping                                            */
+  /* -------------------------------------------------------- */
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  input.focus();
+
+</script>
+
+</body>
+</html>
