@@ -16,7 +16,7 @@ Before starting, ensure you have the following installed on your host machine:
 ### Environment Setup
 
 #### 1. VS Code Dev Container
-Because this project spins up a Qdrant database container from inside your development container, it relies on a "Docker-in-Docker" (or Docker-outside-of-Docker) configuration.
+
 - Clone this repository and open the folder in VS Code.
 - When prompted by the Dev Containers extension, click "Reopen in Container".
 - The .devcontainer.json file is pre-configured with the Docker CLI feature, allowing the container to communicate with your host's Docker engine.
