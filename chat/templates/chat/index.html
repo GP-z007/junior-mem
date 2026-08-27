@@ -3,34 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Junior — Local AI Agent</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  >
+  <title>Junior</title>
 
   <style>
     :root {
-      --bg: #07100c;
-      --bg-soft: #0a1510;
-      --panel: #0c1812;
-      --panel-2: #101d16;
+      --bg: #171717;
+      --window: #1e1e1e;
+      --panel: #202020;
+      --panel-hover: #262626;
+      --input: #252525;
 
-      --line: rgba(184, 221, 196, 0.12);
-      --line-strong: rgba(184, 221, 196, 0.22);
+      --border: #303030;
+      --border-soft: #292929;
 
-      --text: #e8eee9;
-      --muted: #809187;
+      --text: #e7e7e7;
+      --text-soft: #b9b9b9;
+      --muted: #737373;
 
-      --accent: #b8e7c7;
-      --accent-bright: #d6f8df;
-      --accent-dim: #729982;
+      --accent: #a9c7b2;
+      --accent-soft: rgba(169, 199, 178, 0.10);
 
-      --danger: #e18e8e;
+      --danger: #d68b8b;
+
+      --radius: 12px;
     }
 
     * {
@@ -39,21 +34,39 @@
 
     html,
     body {
-      margin: 0;
+      width: 100%;
       height: 100%;
-      background: var(--bg);
-      color: var(--text);
+      margin: 0;
     }
 
     body {
+      background:
+        radial-gradient(
+          circle at 50% -20%,
+          #262626 0%,
+          #181818 48%,
+          #141414 100%
+        );
+
+      color: var(--text);
+
       font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
+        Inter,
         sans-serif;
+
+      overflow: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
     }
 
     .mono {
@@ -66,116 +79,412 @@
         monospace;
     }
 
-    /* subtle Hermes-style grid */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
 
-      background-image:
-        linear-gradient(
-          rgba(184, 231, 199, 0.018) 1px,
-          transparent 1px
-        ),
-        linear-gradient(
-          90deg,
-          rgba(184, 231, 199, 0.018) 1px,
-          transparent 1px
-        );
+    /* -------------------------------------------------- */
+    /* APP SHELL                                           */
+    /* -------------------------------------------------- */
 
-      background-size: 32px 32px;
+    .desktop {
+      width: 100%;
+      height: 100%;
+      padding: 28px;
 
-      mask-image:
-        linear-gradient(
-          to bottom,
-          black,
-          rgba(0, 0, 0, 0.6) 60%,
-          transparent
-        );
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+    .window {
+      width: min(1100px, 100%);
+      height: min(820px, 100%);
 
-      background:
-        radial-gradient(
-          circle at 50% -10%,
-          rgba(113, 175, 135, 0.07),
-          transparent 40%
-        );
+      background: var(--window);
+
+      border: 1px solid var(--border);
+
+      border-radius: var(--radius);
+
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.22);
+
+      overflow: hidden;
+
+      display: flex;
+      flex-direction: column;
     }
 
-    .shell {
-      position: relative;
-      z-index: 1;
+
+    /* -------------------------------------------------- */
+    /* TITLE BAR                                           */
+    /* -------------------------------------------------- */
+
+    .titlebar {
+      height: 46px;
+      flex-shrink: 0;
+
+      border-bottom: 1px solid var(--border-soft);
+
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+
+      padding: 0 15px;
+
+      user-select: none;
     }
 
-    .technical-border {
-      border-color: var(--line);
+    .traffic {
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
 
-    .technical-border-strong {
-      border-color: var(--line-strong);
+    .traffic span {
+      width: 10px;
+      height: 10px;
+
+      border-radius: 50%;
+
+      background: #414141;
     }
 
-    .panel {
-      background:
-        linear-gradient(
-          180deg,
-          rgba(14, 28, 20, 0.96),
-          rgba(8, 18, 13, 0.98)
-        );
+    .title {
+      color: #a7a7a7;
+
+      font-size: 12px;
+      font-weight: 500;
+
+      letter-spacing: 0.01em;
     }
 
-    /* custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 7px;
+    .title-actions {
+      justify-self: end;
+
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
 
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
 
-    ::-webkit-scrollbar-thumb {
-      background: rgba(184, 231, 199, 0.13);
-      border-radius: 100px;
-    }
+      color: var(--muted);
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(184, 231, 199, 0.25);
+      font-size: 11px;
     }
 
     .status-dot {
-      box-shadow:
-        0 0 0 4px rgba(184, 231, 199, 0.05),
-        0 0 16px rgba(184, 231, 199, 0.22);
+      width: 6px;
+      height: 6px;
+
+      border-radius: 50%;
+
+      background: var(--accent);
     }
 
-    .agent-mark {
+    .memory-link {
+      border: 0;
+      background: transparent;
+
+      color: #858585;
+
+      cursor: pointer;
+
+      font-size: 11px;
+
+      text-decoration: none;
+
+      transition: color 120ms ease;
+    }
+
+    .memory-link:hover {
+      color: #c7c7c7;
+    }
+
+
+    /* -------------------------------------------------- */
+    /* CONTENT                                             */
+    /* -------------------------------------------------- */
+
+    .content {
       position: relative;
+
+      flex: 1;
+      min-height: 0;
     }
 
-    .agent-mark::after {
-      content: "";
+
+    /* -------------------------------------------------- */
+    /* WELCOME                                             */
+    /* -------------------------------------------------- */
+
+    #welcome-view {
       position: absolute;
-      inset: -4px;
-      border: 1px solid rgba(184, 231, 199, 0.08);
+      inset: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 40px;
+
+      transition:
+        opacity 220ms ease,
+        transform 220ms ease;
     }
 
-    .message-enter {
-      animation: messageIn 180ms ease-out;
+    #welcome-view.hidden {
+      opacity: 0;
+
+      pointer-events: none;
+
+      transform: translateY(-5px);
     }
 
-    @keyframes messageIn {
+    .welcome {
+      width: min(620px, 100%);
+    }
+
+    .junior-icon {
+      width: 42px;
+      height: 42px;
+
+      margin-bottom: 25px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid #383838;
+
+      border-radius: 10px;
+
+      background: #252525;
+
+      color: #d8d8d8;
+
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .welcome h1 {
+      margin: 0;
+
+      color: #f0f0f0;
+
+      font-size: clamp(27px, 4vw, 36px);
+      font-weight: 520;
+
+      letter-spacing: -0.035em;
+    }
+
+    .welcome-copy {
+      max-width: 510px;
+
+      margin-top: 13px;
+
+      color: #909090;
+
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .how-it-works {
+      margin-top: 34px;
+
+      border-top: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .how-row {
+      min-height: 63px;
+
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 10px;
+
+      align-items: center;
+
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .how-row:last-child {
+      border-bottom: 0;
+    }
+
+    .how-number {
+      color: #5f5f5f;
+
+      font-size: 11px;
+    }
+
+    .how-title {
+      margin-bottom: 3px;
+
+      color: #cfcfcf;
+
+      font-size: 13px;
+    }
+
+    .how-description {
+      color: #727272;
+
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .welcome-actions {
+      margin-top: 30px;
+
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .start-button {
+      height: 38px;
+
+      padding: 0 17px;
+
+      border: 1px solid #4b584f;
+
+      border-radius: 7px;
+
+      background: #29322c;
+
+      color: #d9e3dc;
+
+      cursor: pointer;
+
+      font-size: 12px;
+      font-weight: 500;
+
+      transition:
+        background 120ms ease,
+        border-color 120ms ease;
+    }
+
+    .start-button:hover {
+      background: #303c34;
+      border-color: #59675e;
+    }
+
+    .shortcut {
+      color: #575757;
+
+      font-size: 10px;
+    }
+
+
+    /* -------------------------------------------------- */
+    /* CHAT                                                */
+    /* -------------------------------------------------- */
+
+    #chat-view {
+      position: absolute;
+      inset: 0;
+
+      opacity: 0;
+      pointer-events: none;
+
+      transform: translateY(6px);
+
+      transition:
+        opacity 220ms ease,
+        transform 220ms ease;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chat-view.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+
+    /* Fake editor tab */
+
+    .editor-tabs {
+      height: 39px;
+      flex-shrink: 0;
+
+      display: flex;
+
+      border-bottom: 1px solid var(--border-soft);
+
+      background: #1b1b1b;
+    }
+
+    .editor-tab {
+      min-width: 140px;
+
+      height: 39px;
+
+      padding: 0 15px;
+
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      border-right: 1px solid var(--border-soft);
+      border-top: 1px solid transparent;
+
+      background: var(--window);
+
+      color: #bdbdbd;
+
+      font-size: 11px;
+    }
+
+    .editor-tab-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 2px;
+
+      background: var(--accent);
+      opacity: 0.75;
+    }
+
+
+    /* Chat body */
+
+    #chat-box {
+      flex: 1;
+      min-height: 0;
+
+      overflow-y: auto;
+
+      scroll-behavior: smooth;
+    }
+
+    .messages {
+      width: min(760px, calc(100% - 44px));
+
+      margin: 0 auto;
+
+      padding: 43px 0 60px;
+    }
+
+    .message {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 14px;
+
+      margin-bottom: 32px;
+
+      animation: message-in 160ms ease-out;
+    }
+
+    @keyframes message-in {
       from {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(4px);
       }
 
       to {
@@ -184,15 +493,117 @@
       }
     }
 
-    .thinking-dot {
+    .avatar {
+      width: 26px;
+      height: 26px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid #383838;
+      border-radius: 6px;
+
+      background: #242424;
+
+      color: #bebebe;
+
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .message-user .avatar {
+      color: #8c8c8c;
+    }
+
+    .message-author {
+      height: 26px;
+
+      display: flex;
+      align-items: center;
+
+      margin-bottom: 7px;
+
+      color: #7e7e7e;
+
+      font-size: 11px;
+    }
+
+    .message-text {
+      color: #d1d1d1;
+
+      font-size: 14px;
+      line-height: 1.75;
+
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .message-user .message-text {
+      color: #bcbcbc;
+    }
+
+
+    /* Memory */
+
+    .memory-context {
+      margin-top: 14px;
+
+      border-left: 1px solid #3d4b42;
+
+      padding-left: 12px;
+    }
+
+    .memory-context summary {
+      color: #6f7f74;
+
+      cursor: pointer;
+
+      font-size: 10px;
+
+      list-style: none;
+    }
+
+    .memory-context summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .memory-list {
+      margin-top: 9px;
+
+      color: #757575;
+
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+
+    /* Thinking */
+
+    .thinking {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      height: 20px;
+    }
+
+    .thinking span {
+      width: 4px;
+      height: 4px;
+
+      border-radius: 50%;
+
+      background: #777;
+
       animation: thinking 1.2s infinite ease-in-out;
     }
 
-    .thinking-dot:nth-child(2) {
+    .thinking span:nth-child(2) {
       animation-delay: 0.15s;
     }
 
-    .thinking-dot:nth-child(3) {
+    .thinking span:nth-child(3) {
       animation-delay: 0.3s;
     }
 
@@ -208,490 +619,495 @@
       }
     }
 
-    #message-input::placeholder {
-      color: #536259;
+
+    /* -------------------------------------------------- */
+    /* COMPOSER                                            */
+    /* -------------------------------------------------- */
+
+    .composer-area {
+      flex-shrink: 0;
+
+      padding:
+        0
+        20px
+        20px;
+
+      background:
+        linear-gradient(
+          to top,
+          var(--window) 65%,
+          rgba(30, 30, 30, 0)
+        );
     }
 
-    #message-input:focus {
-      border-color: rgba(184, 231, 199, 0.32);
+    .composer {
+      width: min(760px, 100%);
+
+      margin: 0 auto;
+
+      min-height: 52px;
+
+      display: flex;
+      align-items: center;
+
+      border: 1px solid #383838;
+
+      border-radius: 9px;
+
+      background: var(--input);
+
       box-shadow:
-        0 0 0 1px rgba(184, 231, 199, 0.04),
-        0 0 25px rgba(92, 153, 113, 0.035);
+        0 8px 20px rgba(0, 0, 0, 0.13);
+
+      transition:
+        border-color 120ms ease,
+        background 120ms ease;
+    }
+
+    .composer:focus-within {
+      border-color: #4d554f;
+
+      background: #272727;
+    }
+
+    #message-input {
+      flex: 1;
+
+      height: 50px;
+
+      padding: 0 15px;
+
+      border: 0;
+      outline: 0;
+
+      background: transparent;
+
+      color: #dedede;
+
+      font-size: 13px;
+    }
+
+    #message-input::placeholder {
+      color: #686868;
+    }
+
+    #send-btn {
+      width: 34px;
+      height: 34px;
+
+      margin-right: 8px;
+
+      border: 1px solid #3f4b43;
+      border-radius: 7px;
+
+      background: #303a33;
+
+      color: #b8c7bc;
+
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      transition: background 120ms ease;
+    }
+
+    #send-btn:hover {
+      background: #39453d;
+    }
+
+    #send-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .send-arrow {
+      width: 12px;
+      height: 12px;
+    }
+
+    .composer-meta {
+      width: min(760px, 100%);
+
+      margin: 7px auto 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      color: #555;
+
+      font-size: 9px;
+    }
+
+
+    /* -------------------------------------------------- */
+    /* ERROR                                               */
+    /* -------------------------------------------------- */
+
+    .error {
+      margin:
+        -12px
+        0
+        26px
+        40px;
+
+      color: var(--danger);
+
+      font-size: 11px;
+    }
+
+
+    /* -------------------------------------------------- */
+    /* SCROLLBAR                                           */
+    /* -------------------------------------------------- */
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #3a3a3a transparent;
+    }
+
+    *::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: #3a3a3a;
+
+      border: 2px solid var(--window);
+
+      border-radius: 10px;
+    }
+
+
+    /* -------------------------------------------------- */
+    /* MOBILE                                              */
+    /* -------------------------------------------------- */
+
+    @media (max-width: 700px) {
+      .desktop {
+        padding: 0;
+      }
+
+      .window {
+        width: 100%;
+        height: 100%;
+
+        border: 0;
+        border-radius: 0;
+      }
+
+      #welcome-view {
+        padding: 28px;
+      }
+
+      .messages {
+        width: calc(100% - 30px);
+
+        padding-top: 28px;
+      }
+
+      .status {
+        display: none;
+      }
+
+      .titlebar {
+        grid-template-columns: 1fr auto;
+      }
+
+      .title {
+        display: none;
+      }
     }
   </style>
 </head>
 
-<body class="overflow-hidden">
+<body>
 
-<div class="shell h-screen flex flex-col">
+<div class="desktop">
 
-  <!-- ====================================================== -->
-  <!-- HEADER -->
-  <!-- ====================================================== -->
+  <main class="window">
 
-  <header
-    class="
-      h-[62px]
-      shrink-0
-      border-b technical-border
-      bg-[#07100c]/90
-      backdrop-blur-xl
-      flex
-      items-center
-      justify-between
-      px-5 md:px-8
-    "
-  >
+    <!-- ================================================== -->
+    <!-- TITLE BAR                                          -->
+    <!-- ================================================== -->
 
-    <!-- Brand -->
-    <div class="flex items-center gap-4">
+    <div class="titlebar">
 
-      <div
-        class="
-          agent-mark
-          w-7 h-7
-          border technical-border-strong
-          flex items-center justify-center
-          mono
-          text-[11px]
-          text-[#ccebd6]
-        "
-      >
-        J
+      <div class="traffic">
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="title">
+        Junior
+      </div>
 
-        <span
-          class="
-            text-[14px]
-            tracking-[0.19em]
-            font-medium
-            text-[#e7eee9]
-          "
-        >
-          JUNIOR
-        </span>
+      <div class="title-actions">
 
-        <span
-          class="
-            hidden sm:inline
-            mono
-            text-[9px]
-            tracking-[0.16em]
-            text-[#617269]
-            border-l technical-border
-            pl-3
-          "
+        <div class="status">
+          <span class="status-dot"></span>
+          ready
+        </div>
+
+        <a
+          class="memory-link"
+          href="http://localhost:6333/dashboard#/collections"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          LOCAL AGENT
-        </span>
+          memory
+        </a>
 
       </div>
+
     </div>
 
 
-    <!-- Header Right -->
-    <div class="flex items-center gap-5">
+    <!-- ================================================== -->
+    <!-- CONTENT                                            -->
+    <!-- ================================================== -->
 
-      <!-- status -->
-      <div
-        class="
-          hidden md:flex
-          items-center gap-2
-          mono
-          text-[9px]
-          tracking-[0.14em]
-          uppercase
-          text-[#718379]
-        "
-      >
-
-        <span
-          class="
-            status-dot
-            w-[5px]
-            h-[5px]
-            rounded-full
-            bg-[#acd9ba]
-          "
-        ></span>
-
-        inference online
-
-      </div>
+    <div class="content">
 
 
-      <!-- Qdrant -->
-      <a
-        href="http://localhost:6333/dashboard#/collections"
-        target="_blank"
-        rel="noopener noreferrer"
+      <!-- ================================================= -->
+      <!-- WELCOME VIEW                                      -->
+      <!-- ================================================= -->
 
-        class="
-          group
-          mono
-          text-[10px]
-          tracking-[0.1em]
-          uppercase
-          border technical-border-strong
-          text-[#97aa9e]
-          hover:text-[#d3e6d9]
-          hover:border-[#6f8f7a]
-          px-3.5
-          h-8
-          flex
-          items-center
-          gap-2
-          transition-all
-        "
-      >
+      <section id="welcome-view">
 
-        <i
-          class="
-            fa-solid
-            fa-database
-            text-[9px]
-            text-[#7fa58c]
-          "
-        ></i>
+        <div class="welcome">
 
-        <span class="hidden sm:inline">
-          Qdrant
-        </span>
+          <div class="junior-icon mono">
+            J
+          </div>
 
-        <i
-          class="
-            fa-solid
-            fa-arrow-up-right-from-square
-            text-[8px]
-            opacity-50
-            group-hover:opacity-100
-          "
-        ></i>
+          <h1>
+            Meet Junior.
+          </h1>
 
-      </a>
-
-    </div>
-
-  </header>
+          <p class="welcome-copy">
+            A personal assistant that can remember useful details
+            from your conversations and bring them back when they matter.
+          </p>
 
 
-  <!-- ====================================================== -->
-  <!-- WORKSPACE -->
-  <!-- ====================================================== -->
+          <div class="how-it-works">
 
-  <main class="flex-1 min-h-0 flex justify-center">
+            <div class="how-row">
 
-    <section
-      class="
-        w-full
-        max-w-[1000px]
-        h-full
-        border-x technical-border
-        flex
-        flex-col
-        bg-[#08110d]/55
-      "
-    >
-
-
-      <!-- ================================================== -->
-      <!-- CHAT TOP INFO -->
-      <!-- ================================================== -->
-
-      <div
-        class="
-          h-11
-          shrink-0
-          border-b technical-border
-          flex
-          items-center
-          justify-between
-          px-5 md:px-7
-          mono
-        "
-      >
-
-        <div
-          class="
-            text-[9px]
-            tracking-[0.14em]
-            text-[#64736a]
-            uppercase
-          "
-        >
-          conversation / user_1
-        </div>
-
-
-        <div
-          class="
-            text-[9px]
-            tracking-[0.12em]
-            text-[#4f6056]
-            uppercase
-          "
-        >
-          memory enabled
-        </div>
-
-      </div>
-
-
-      <!-- ================================================== -->
-      <!-- CHAT STREAM -->
-      <!-- ================================================== -->
-
-      <div
-        id="chat-box"
-        class="
-          flex-1
-          min-h-0
-          overflow-y-auto
-          px-5
-          md:px-10
-          py-8
-        "
-      >
-
-        <div class="max-w-[820px] mx-auto space-y-10">
-
-
-          <!-- Initial Assistant -->
-          <article class="message-enter">
-
-            <div class="flex gap-5">
-
-              <!-- avatar -->
-              <div class="shrink-0 pt-[2px]">
-
-                <div
-                  class="
-                    w-7
-                    h-7
-                    border technical-border-strong
-                    flex
-                    items-center
-                    justify-center
-                    mono
-                    text-[10px]
-                    text-[#bfe0ca]
-                    bg-[#0d1912]
-                  "
-                >
-                  J
-                </div>
-
+              <div class="how-number mono">
+                01
               </div>
 
+              <div>
 
-              <!-- content -->
-              <div class="flex-1 min-w-0">
-
-                <div
-                  class="
-                    flex
-                    items-center
-                    gap-3
-                    mb-3
-                    mono
-                  "
-                >
-
-                  <span
-                    class="
-                      text-[10px]
-                      tracking-[0.14em]
-                      uppercase
-                      text-[#aac1b1]
-                    "
-                  >
-                    Junior
-                  </span>
-
-                  <span
-                    class="
-                      text-[9px]
-                      text-[#46564d]
-                    "
-                  >
-                    agent
-                  </span>
-
+                <div class="how-title">
+                  You talk normally
                 </div>
 
-
-                <div
-                  class="
-                    text-[15px]
-                    md:text-[16px]
-                    leading-7
-                    text-[#cbd5ce]
-                  "
-                >
-                  Hello. I’m Junior.
-
-                  <span class="text-[#75877c]">
-                    I can recall relevant context from long-term memory
-                    while we talk.
-                  </span>
+                <div class="how-description">
+                  Ask questions, share ideas, or continue where you left off.
                 </div>
 
               </div>
 
             </div>
 
-          </article>
 
-        </div>
+            <div class="how-row">
 
-      </div>
+              <div class="how-number mono">
+                02
+              </div>
+
+              <div>
+
+                <div class="how-title">
+                  Junior remembers useful context
+                </div>
+
+                <div class="how-description">
+                  Relevant details can be recalled in future conversations.
+                </div>
+
+              </div>
+
+            </div>
 
 
-      <!-- ================================================== -->
-      <!-- INPUT AREA -->
-      <!-- ================================================== -->
+            <div class="how-row">
 
-      <div
-        class="
-          shrink-0
-          border-t technical-border
-          bg-[#07100c]/92
-          px-4
-          md:px-7
-          pt-4
-          pb-5
-        "
-      >
+              <div class="how-number mono">
+                03
+              </div>
 
-        <div class="max-w-[820px] mx-auto">
+              <div>
 
-          <form
-            id="chat-form"
-            class="relative"
-          >
+                <div class="how-title">
+                  Conversations feel continuous
+                </div>
 
-            <div
-              class="
-                border
-                technical-border-strong
-                bg-[#0a1510]
-                transition-all
-                flex
-                items-center
-              "
+                <div class="how-description">
+                  You do not have to repeat the same context every time.
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="welcome-actions">
+
+            <button
+              id="start-chat"
+              class="start-button"
+              type="button"
             >
+              Start a conversation
+            </button>
 
-              <!-- terminal indicator -->
-              <div
-                class="
-                  pl-4
-                  mono
-                  text-[13px]
-                  text-[#7ea18a]
-                  select-none
-                "
-              >
-                &gt;
-              </div>
-
-
-              <input
-                id="message-input"
-                type="text"
-                autocomplete="off"
-                placeholder="Message Junior..."
-                class="
-                  flex-1
-                  h-[54px]
-                  bg-transparent
-                  outline-none
-                  border-0
-                  px-3
-                  text-[14px]
-                  text-[#d6ded8]
-                "
-              >
-
-
-              <button
-                id="send-btn"
-                type="submit"
-                aria-label="Send"
-
-                class="
-                  group
-                  w-[52px]
-                  h-[52px]
-                  flex
-                  items-center
-                  justify-center
-                  text-[#7f9687]
-                  hover:text-[#d4e8da]
-                  transition-colors
-                "
-              >
-
-                <i
-                  class="
-                    fa-solid
-                    fa-arrow-up
-                    text-[13px]
-                    transition-transform
-                    group-hover:-translate-y-[2px]
-                  "
-                ></i>
-
-              </button>
-
-            </div>
-
-          </form>
-
-
-          <!-- footer info -->
-          <div
-            class="
-              flex
-              items-center
-              justify-between
-              mt-3
-              mono
-              text-[8px]
-              tracking-[0.1em]
-              uppercase
-              text-[#405047]
-            "
-          >
-
-            <span>
-              qwen3.8 / mlx
-            </span>
-
-            <span>
-              mem0 · qdrant
+            <span class="shortcut mono">
+              press Enter
             </span>
 
           </div>
 
         </div>
 
-      </div>
+      </section>
 
-    </section>
+
+      <!-- ================================================= -->
+      <!-- CHAT VIEW                                         -->
+      <!-- ================================================= -->
+
+      <section id="chat-view">
+
+        <div class="editor-tabs">
+
+          <div class="editor-tab">
+
+            <span class="editor-tab-dot"></span>
+
+            conversation
+
+          </div>
+
+        </div>
+
+
+        <div id="chat-box">
+
+          <div
+            id="messages"
+            class="messages"
+          >
+
+            <div class="message">
+
+              <div class="avatar mono">
+                J
+              </div>
+
+              <div>
+
+                <div class="message-author">
+                  Junior
+                </div>
+
+                <div class="message-text">Hey. What's on your mind?</div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Composer -->
+
+        <div class="composer-area">
+
+          <form
+            id="chat-form"
+            class="composer"
+          >
+
+            <input
+              id="message-input"
+              type="text"
+              autocomplete="off"
+              placeholder="Ask Junior anything..."
+            >
+
+            <button
+              id="send-btn"
+              type="submit"
+              aria-label="Send message"
+            >
+
+              <svg
+                class="send-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 19V5"></path>
+                <path d="M5 12l7-7 7 7"></path>
+              </svg>
+
+            </button>
+
+          </form>
+
+
+          <div class="composer-meta mono">
+
+            <span>
+              memory on
+            </span>
+
+            <span>
+              Enter to send
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
 
   </main>
 
 </div>
 
 
-
-<!-- ======================================================== -->
-<!-- CHAT LOGIC -->
-<!-- ======================================================== -->
-
 <script>
+  const welcomeView =
+    document.getElementById("welcome-view");
+
+  const chatView =
+    document.getElementById("chat-view");
+
+  const startChatButton =
+    document.getElementById("start-chat");
 
   const form =
     document.getElementById("chat-form");
@@ -699,425 +1115,229 @@
   const input =
     document.getElementById("message-input");
 
+  const messages =
+    document.getElementById("messages");
+
   const chatBox =
     document.getElementById("chat-box");
 
-  const sendBtn =
+  const sendButton =
     document.getElementById("send-btn");
 
 
-  function getMessagesContainer() {
-    return chatBox.querySelector(
-      ".max-w-\\[820px\\]"
-    );
+  /* ===================================================== */
+  /* OPEN CHAT                                             */
+  /* ===================================================== */
+
+  function openChat() {
+    welcomeView.classList.add("hidden");
+    chatView.classList.add("visible");
+
+    setTimeout(() => {
+      input.focus();
+    }, 180);
   }
 
 
-  function scrollToBottom() {
-
-    requestAnimationFrame(() => {
-
-      chatBox.scrollTo({
-        top: chatBox.scrollHeight,
-        behavior: "smooth"
-      });
-
-    });
-
-  }
+  startChatButton.addEventListener(
+    "click",
+    openChat
+  );
 
 
-  /* -------------------------------------------------------- */
-  /* User Message                                             */
-  /* -------------------------------------------------------- */
+  window.addEventListener(
+    "keydown",
+    event => {
 
-  function renderUserMessage(message) {
+      if (
+        event.key === "Enter" &&
+        !chatView.classList.contains("visible")
+      ) {
+        event.preventDefault();
 
-    const container =
-      getMessagesContainer();
+        openChat();
+      }
 
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-        <article class="message-enter">
+    }
+  );
 
-          <div class="flex gap-5 justify-end">
 
-            <div class="max-w-[720px] text-right">
+  /* ===================================================== */
+  /* USER MESSAGE                                         */
+  /* ===================================================== */
 
-              <div
-                class="
-                  mb-3
-                  mono
-                  text-[10px]
-                  tracking-[0.14em]
-                  uppercase
-                  text-[#65776c]
-                "
-              >
-                You
-              </div>
+  function addUserMessage(text) {
 
-              <div
-                class="
-                  inline-block
-                  text-left
-                  border-l
-                  border-[#577263]
-                  pl-5
-                  text-[15px]
-                  md:text-[16px]
-                  leading-7
-                  text-[#d8e1db]
-                "
-              >
-                ${escapeHtml(message)}
-              </div>
+    const element =
+      document.createElement("div");
 
-            </div>
+    element.className =
+      "message message-user";
 
-          </div>
+    element.innerHTML = `
+      <div class="avatar mono">
+        Y
+      </div>
 
-        </article>
-      `
-    );
+      <div>
+        <div class="message-author">
+          You
+        </div>
+
+        <div class="message-text">${escapeHtml(text)}</div>
+      </div>
+    `;
+
+    messages.appendChild(element);
+
+    scrollBottom();
 
   }
 
 
-  /* -------------------------------------------------------- */
-  /* Loading Message                                          */
-  /* -------------------------------------------------------- */
+  /* ===================================================== */
+  /* THINKING                                              */
+  /* ===================================================== */
 
-  function renderLoading() {
+  function addThinkingMessage() {
 
     const id =
-      "loading-" + Date.now();
+      "thinking-" + Date.now();
 
-    const container =
-      getMessagesContainer();
+    const element =
+      document.createElement("div");
 
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-        <article
-          id="${id}"
-          class="message-enter"
-        >
+    element.id = id;
 
-          <div class="flex gap-5">
+    element.className =
+      "message";
 
-            <div class="shrink-0">
+    element.innerHTML = `
+      <div class="avatar mono">
+        J
+      </div>
 
-              <div
-                class="
-                  w-7
-                  h-7
-                  border technical-border-strong
-                  flex
-                  items-center
-                  justify-center
-                  mono
-                  text-[10px]
-                  text-[#bfe0ca]
-                  bg-[#0d1912]
-                "
-              >
-                J
-              </div>
+      <div>
+        <div class="message-author">
+          Junior
+        </div>
 
-            </div>
+        <div class="thinking">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
 
+    messages.appendChild(element);
 
-            <div>
-
-              <div
-                class="
-                  mono
-                  text-[9px]
-                  uppercase
-                  tracking-[0.13em]
-                  text-[#56685d]
-                  flex
-                  items-center
-                  gap-3
-                "
-              >
-
-                <span>
-                  recalling memory / inference
-                </span>
-
-
-                <span class="flex gap-1">
-
-                  <span
-                    class="
-                      thinking-dot
-                      block
-                      w-[3px]
-                      h-[3px]
-                      bg-[#8eaa98]
-                    "
-                  ></span>
-
-                  <span
-                    class="
-                      thinking-dot
-                      block
-                      w-[3px]
-                      h-[3px]
-                      bg-[#8eaa98]
-                    "
-                  ></span>
-
-                  <span
-                    class="
-                      thinking-dot
-                      block
-                      w-[3px]
-                      h-[3px]
-                      bg-[#8eaa98]
-                    "
-                  ></span>
-
-                </span>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </article>
-      `
-    );
+    scrollBottom();
 
     return id;
 
   }
 
 
-  /* -------------------------------------------------------- */
-  /* Assistant Message                                        */
-  /* -------------------------------------------------------- */
+  /* ===================================================== */
+  /* ASSISTANT MESSAGE                                     */
+  /* ===================================================== */
 
-  function renderAssistantMessage(
-    response,
-    memories = []
+  function addAssistantMessage(
+    text,
+    recalledMemories = []
   ) {
 
-    const container =
-      getMessagesContainer();
+    const element =
+      document.createElement("div");
+
+    element.className =
+      "message";
 
 
-    let memoryBlock = "";
+    let memoryHtml = "";
 
 
     if (
-      Array.isArray(memories) &&
-      memories.length > 0
+      Array.isArray(recalledMemories) &&
+      recalledMemories.length > 0
     ) {
 
-      memoryBlock = `
-        <details
-          class="
-            mt-5
-            border
-            technical-border
-            bg-[#08120d]
-          "
-        >
+      memoryHtml = `
+        <details class="memory-context">
 
-          <summary
-            class="
-              cursor-pointer
-              select-none
-              px-4
-              py-3
-              mono
-              text-[9px]
-              uppercase
-              tracking-[0.13em]
-              text-[#688073]
-              hover:text-[#9cb5a5]
-            "
-          >
-
-            recalled context
-            <span class="text-[#43534a]">
-              [${memories.length}]
-            </span>
-
+          <summary>
+            used ${recalledMemories.length}
+            remembered detail${recalledMemories.length === 1 ? "" : "s"}
           </summary>
 
+          <div class="memory-list">
 
-          <div
-            class="
-              border-t
-              technical-border
-              px-4
-              py-4
-              space-y-2
-            "
-          >
-
-            ${memories.map(memory => `
-
-              <div
-                class="
-                  flex
-                  gap-3
-                  mono
-                  text-[10px]
-                  leading-5
-                  text-[#70857a]
-                "
-              >
-
-                <span class="text-[#51655a]">
-                  ├─
-                </span>
-
-                <span>
-                  ${escapeHtml(memory)}
-                </span>
-
-              </div>
-
-            `).join("")}
+            ${recalledMemories
+              .map(
+                memory =>
+                  `<div>• ${escapeHtml(memory)}</div>`
+              )
+              .join("")}
 
           </div>
 
         </details>
       `;
-
     }
 
 
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-        <article class="message-enter">
+    element.innerHTML = `
+      <div class="avatar mono">
+        J
+      </div>
 
-          <div class="flex gap-5">
+      <div>
 
-            <div class="shrink-0 pt-[2px]">
-
-              <div
-                class="
-                  w-7
-                  h-7
-                  border technical-border-strong
-                  flex
-                  items-center
-                  justify-center
-                  mono
-                  text-[10px]
-                  text-[#bfe0ca]
-                  bg-[#0d1912]
-                "
-              >
-                J
-              </div>
-
-            </div>
-
-
-            <div class="flex-1 min-w-0">
-
-              <div
-                class="
-                  flex
-                  items-center
-                  gap-3
-                  mb-3
-                  mono
-                "
-              >
-
-                <span
-                  class="
-                    text-[10px]
-                    tracking-[0.14em]
-                    uppercase
-                    text-[#aac1b1]
-                  "
-                >
-                  Junior
-                </span>
-
-                <span
-                  class="
-                    text-[9px]
-                    text-[#46564d]
-                  "
-                >
-                  agent
-                </span>
-
-              </div>
-
-
-              <div
-                class="
-                  whitespace-pre-wrap
-                  text-[15px]
-                  md:text-[16px]
-                  leading-7
-                  text-[#cbd5ce]
-                "
-              >${escapeHtml(response)}</div>
-
-
-              ${memoryBlock}
-
-            </div>
-
-          </div>
-
-        </article>
-      `
-    );
-
-  }
-
-
-  /* -------------------------------------------------------- */
-  /* Error                                                    */
-  /* -------------------------------------------------------- */
-
-  function renderError(message) {
-
-    const container =
-      getMessagesContainer();
-
-    container.insertAdjacentHTML(
-      "beforeend",
-      `
-        <div
-          class="
-            message-enter
-            mono
-            text-[10px]
-            tracking-[0.08em]
-            text-[#c98080]
-            border-l
-            border-[#764747]
-            pl-4
-          "
-        >
-          ERROR / ${escapeHtml(message)}
+        <div class="message-author">
+          Junior
         </div>
-      `
-    );
+
+        <div class="message-text">${escapeHtml(text)}</div>
+
+        ${memoryHtml}
+
+      </div>
+    `;
+
+
+    messages.appendChild(element);
+
+    scrollBottom();
 
   }
 
 
-  /* -------------------------------------------------------- */
-  /* Submit                                                   */
-  /* -------------------------------------------------------- */
+  /* ===================================================== */
+  /* ERROR                                                 */
+  /* ===================================================== */
+
+  function addError(text) {
+
+    const element =
+      document.createElement("div");
+
+    element.className =
+      "error mono";
+
+    element.textContent =
+      text;
+
+    messages.appendChild(element);
+
+    scrollBottom();
+
+  }
+
+
+  /* ===================================================== */
+  /* SEND MESSAGE                                          */
+  /* ===================================================== */
 
   form.addEventListener(
     "submit",
@@ -1135,19 +1355,16 @@
       }
 
 
-      renderUserMessage(message);
+      addUserMessage(message);
 
 
       input.value = "";
       input.disabled = true;
-      sendBtn.disabled = true;
+      sendButton.disabled = true;
 
 
-      const loadingId =
-        renderLoading();
-
-
-      scrollToBottom();
+      const thinkingId =
+        addThinkingMessage();
 
 
       try {
@@ -1164,7 +1381,7 @@
               },
 
               body: JSON.stringify({
-                message,
+                message: message,
                 user_id: "user_1"
               })
             }
@@ -1176,7 +1393,7 @@
 
 
         document
-          .getElementById(loadingId)
+          .getElementById(thinkingId)
           ?.remove();
 
 
@@ -1185,16 +1402,16 @@
           data.error
         ) {
 
-          renderError(
+          addError(
             data.error ||
-            `HTTP ${response.status}`
+            `Request failed (${response.status})`
           );
 
           return;
         }
 
 
-        renderAssistantMessage(
+        addAssistantMessage(
           data.response,
           data.recalled_memories
         );
@@ -1204,13 +1421,14 @@
       catch (error) {
 
         document
-          .getElementById(loadingId)
+          .getElementById(thinkingId)
           ?.remove();
 
 
-        renderError(
-          "Unable to reach Junior."
+        addError(
+          "Could not connect to Junior."
         );
+
 
         console.error(error);
 
@@ -1219,11 +1437,9 @@
       finally {
 
         input.disabled = false;
-        sendBtn.disabled = false;
+        sendButton.disabled = false;
 
         input.focus();
-
-        scrollToBottom();
 
       }
 
@@ -1231,9 +1447,23 @@
   );
 
 
-  /* -------------------------------------------------------- */
-  /* HTML escaping                                            */
-  /* -------------------------------------------------------- */
+  /* ===================================================== */
+  /* HELPERS                                               */
+  /* ===================================================== */
+
+  function scrollBottom() {
+
+    requestAnimationFrame(() => {
+
+      chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
+      });
+
+    });
+
+  }
+
 
   function escapeHtml(value) {
 
@@ -1245,10 +1475,6 @@
       .replace(/'/g, "&#039;");
 
   }
-
-
-  input.focus();
-
 </script>
 
 </body>
